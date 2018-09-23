@@ -12,6 +12,8 @@
 
 #include "LUCrout.hpp"
 #include "LUDoolittle.hpp"
+#include "Invert.hpp"
+#include "SolveLU.hpp"
 
 #include <iostream>
 #include <exception>
@@ -62,8 +64,7 @@ namespace anpi {
       
       // Test decomposition
       {
-        // same matrix as before, but already permuted to force a
-        // clean decomposition
+        // same matrix as before, but already permuted to force a clean decomposition
         anpi::Matrix<T> A = { { 2, 0,1,2},{-1,-2,1,2},{ 1, 1,1,1},{-1,-1,0,1} };
         std::vector<size_t> p;
         decomp(A,LU,p);
@@ -72,14 +73,70 @@ namespace anpi {
         Matrix<T> Ar=L*U;
 
         const T eps = std::numeric_limits<T>::epsilon();
-
         BOOST_CHECK(Ar.rows()==A.rows());
         BOOST_CHECK(Ar.cols()==A.cols());
-
+        
         for (size_t i=0;i<Ar.rows();++i) {
           for (size_t j=0;j<Ar.cols();++j) {
             BOOST_CHECK(std::abs(Ar(i,j)-A(i,j)) < eps);
           }
+        }
+      }
+
+      //test invert
+      {
+        anpi::Matrix<T> A = { { 2, 0,1,2},{-1,-2,1,2},{ 1, 1,1,1},{-1,-1,0,1} };
+        anpi::Matrix<T> Ai;
+        invert(A, Ai);
+
+        const T eps = std::numeric_limits<T>::epsilon();
+        anpi::Matrix<T> I = A*Ai;
+
+        
+        for (int i = 0; i < (int) A.rows(); ++i){
+          for (int j = 0; j < (int) A.cols(); ++j){
+            if (i == j){
+              BOOST_CHECK(abs(I[i][j] - 1 ) < eps);
+            }else{
+              BOOST_CHECK(abs(I[i][j]) < eps);
+            }
+          }
+        }
+        
+      }
+
+      //Test solve LU
+      {
+        anpi::Matrix<float> A = {{-1, -2, 1},
+                           {2, 0, 1},
+                           {-1, -1, 0}};
+        std::vector<float> b = {1,0,-1};
+        std::vector<float> x;
+        solveLU(A, x, b);
+
+        const T eps = std::numeric_limits<T>::epsilon();
+        //primera solución -3
+        BOOST_CHECK(abs(x[0]+3) < eps);
+        //primera solución 4
+        BOOST_CHECK(abs(x[1]-4) < eps);
+        //primera solución 6
+        BOOST_CHECK(abs(x[2]-6) < eps);
+      }
+
+      //Test solve LU with an error 
+      {
+        anpi::Matrix<float> A = {{0, 0, 0},
+                           {0, 0, 0},
+                           {0, 0, 0}};
+        std::vector<float> b = {1,0,-1};
+        std::vector<float> x;
+
+        try {
+          solveLU(A, x, b);
+          BOOST_CHECK_MESSAGE(false,"Divide by 0 not catch");
+        }
+        catch(anpi::Exception& exc) {
+          BOOST_CHECK_MESSAGE(true,"Divide by 0 catch");
         }
       }
     }

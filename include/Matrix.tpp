@@ -9,6 +9,8 @@
  */
 
 #include "bits/MatrixArithmetic.hpp"
+#include <iostream>
+#include "Exception.hpp"
 
 namespace anpi
 {
@@ -446,19 +448,66 @@ namespace anpi
     return c;
   }
 
-  // TODO: Solucionar en la Tarea 04 (Punto 1)
+// Multi matrix * matrix
   template<typename T,class Alloc>
   Matrix<T,Alloc> operator*(const Matrix<T,Alloc>& a,
                             const Matrix<T,Alloc>& b) {
     
-    
-    assert(false && "Not implemented yet");
+    if (a.cols() != b.rows()){
+      throw anpi::Exception("The number of the first matrix's columns must be equal to the second matrix's rows");
+    }
+    int rows = a.rows();
+    int columns = b.cols();
+    int m = a.cols();
+    anpi::Matrix<T,Alloc> result = anpi::Matrix<T, Alloc>(rows, columns);
+    for (int i = 0; i < rows; ++i){
+      for (int j = 0; j < columns; ++j){
+        result[i][j] = 0;
+        for (int k = 0; k < m; ++k){
+          result[i][j] += a[i][k]*b[k][j];
+        }//end for m
+      } // end for columns
+    }//end for rows
+    return result;
   }
 
-  // TODO: Solucionar en la Tarea 04 (Punto 1)
+  //Multi matrix * vector, se asume que el vector es un vector columna
   template<typename T,class Alloc>
-  std::vector<T> operator*(const Matrix<T,Alloc>& a,
-                           const std::vector<T>& b) {
-    assert(false && "Not implemented yet");
+  std::vector<T> operator*(const Matrix<T,Alloc>& a, const std::vector<T>& b){
+    
+     if (a.cols() != b.size()){
+      throw anpi::Exception("The number of the first matrix's columns must be equal to the second matrix's rows");
+    }
+    int rows = a.rows();
+    int columns = b.size();
+    std::vector<T> result = std::vector<T>(rows);
+    for (int i = 0; i < rows; ++i){
+      result[i] = 0;
+      for (int j = 0; j < columns; ++j){
+        
+        result[i] += a[i][j]*b[j];
+      } // end for columns
+    }//end for rows
+    return result;
   }
+
+
+  //Multi vector * matrix, se asuma que el vector es un vector fila
+  template<typename T,class Alloc>
+  std::vector<T> operator*(const std::vector<T>& b, const Matrix<T,Alloc>& a){
+     if (b.size() != a.rows()){
+      throw anpi::Exception("The number of the first matrix's columns must be equal to the second matrix's rows");
+    }
+    int rows = b.size();
+    int columns = a.cols();
+    std::vector<T> result = std::vector<T>(columns);
+    for (int i = 0; i < columns; ++i){
+      result[i] = 0;
+      for (int j = 0; j < rows; ++j){        
+        result[i] += a[j][i]*b[j];
+       // std::cout << "b sub " << j << ": " << b[j] << "* \ta sub" << j << ", " << i << ": " << a[j][i] << std::endl;
+      } // end for columns
+    }//end for rows
+    return result;
+  }  
 } // namespace ANPI
