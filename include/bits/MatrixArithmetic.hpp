@@ -326,7 +326,6 @@ namespace anpi
       for (;here!=end;) {
         *here++ = mm_add<T>(*aptr++,*bptr++);
       }
-      
     }
        
     // On-copy implementation c=a+b for SIMD-capable types
@@ -375,28 +374,148 @@ namespace anpi
       add(a,b,a);
     }
 
+//////////////////////////////////////////////////////////////////////////////// - MYCODE
 
-    /*
+	/*
      * Subtraction
      */
 
-    // Fall back implementations
+    /// We wrap the intrinsics methods to be polymorphic versions
+    template<typename T,class regType>
+    regType mm_add(regType,regType); // We don't implement this to cause, at
+                                     // least, a linker error if this version is
+                                     // used.
 
-    // In-copy implementation c=a-b
-    template<typename T,class Alloc>
-    inline void subtract(const Matrix<T,Alloc>& a,
+
+	// depending on data type, create a and b of type "256 bit data block"
+	// execute matching (to data type) AVX operation
+
+#elif defined __AVX__
+    template<>
+    inline __m256d __attribute__((__always_inline__))
+    mm_sub<double>(__m256d a,__m256d b) {
+      return _mm256_sub_pd(a,b);
+    }
+    template<>
+    inline __m256 __attribute__((__always_inline__))
+    mm_sub<float>(__m256 a,__m256 b) {
+      return _mm256_sub_ps(a,b);
+    }
+    template<>
+    inline __m256i __attribute__((__always_inline__))
+    mm_sub<uint64_t>(__m256i a,__m256i b) {
+      return _mm256_sub_epi64(a,b);
+    }
+    template<>
+    inline __m256i __attribute__((__always_inline__))
+    mm_sub<int64_t>(__m256i a,__m256i b) {
+      return _mm256_sub_epi64(a,b);
+    }
+    template<>
+    inline __m256i __attribute__((__always_inline__))
+    mm_sub<uint32_t>(__m256i a,__m256i b) {
+      return _mm256_sub_epi32(a,b);
+    }
+    template<>
+    inline __m256i __attribute__((__always_inline__))
+    mm_sub<int32_t>(__m256i a,__m256i b) {
+      return _mm256_sub_epi32(a,b);
+    }
+    template<>
+    inline __m256i __attribute__((__always_inline__))
+    mm_sub<uint16_t>(__m256i a,__m256i b) {
+      return _mm256_sub_epi16(a,b);
+    }
+    template<>
+    inline __m256i __attribute__((__always_inline__))
+    mm_sub<int16_t>(__m256i a,__m256i b) {
+      return _mm256_sub_epi16(a,b);
+    }
+    template<>
+    inline __m256i __attribute__((__always_inline__))
+    mm_sub<uint8_t>(__m256i a,__m256i b) {
+      return _mm256_sub_epi8(a,b);
+    }
+    template<>
+    inline __m256i __attribute__((__always_inline__))
+    mm_sub<int8_t>(__m256i a,__m256i b) {
+      return _mm256_sub_epi8(a,b);
+    }
+#endif
+
+//////////////////////////////////////////////////////////////////////////////// - EOF MYCODE
+/*
+    // On-copy implementation c=a-b
+    template<typename T,class Alloc,typename regType>
+    inline void subSIMD(const Matrix<T,Alloc>& a,
                          const Matrix<T,Alloc>& b,
                          Matrix<T,Alloc>& c) {
-      ::anpi::fallback::subtract(a,b,c);
+
+      // This method is instantiated with unaligned allocators.  We
+      // allow the instantiation although externally this is never
+      // called unaligned
+      static_assert(!extract_alignment<Alloc>::aligned ||
+		    (extract_alignment<Alloc>::value >= sizeof(regType)),
+		    "Insufficient alignment for the registers used");
+      
+      const size_t tentries = a.rows()*a.dcols();
+      c.allocate(a.rows(),a.cols());
+
+	// accomodate register size according to data type
+      regType* here        = reinterpret_cast<regType*>(c.data());
+      const size_t  blocks = ( tentries*sizeof(T) + (sizeof(regType)-1) ) / sizeof(regType);
+      regType *const end   = here + blocks;
+      const regType* aptr  = reinterpret_cast<const regType*>(a.data());	//rewrite the matrix
+      const regType* bptr  = reinterpret_cast<const regType*>(b.data());	//as blocks of data
+
+      for (;here!=end;) {
+        *here++ = mm_sub<T>(*aptr++,*bptr++); //substract with optimization
+      }
+    }
+
+    // On-copy implementation c=a-b for SIMD-capable types
+	//This function chooses between optimized and  unoptimized
+    template<typename T,
+	     class Alloc,
+	     typename std::enable_if<is_simd_type<T>::value,int>::type=0>
+    inline void sub(const Matrix<T,Alloc>& a,
+                    const Matrix<T,Alloc>& b,
+                    Matrix<T,Alloc>& c) {
+
+      assert( (a.rows() == b.rows()) && //ensure same size matrix
+              (a.cols() == b.cols()) );
+
+      if (is_aligned_alloc<Alloc>::value) {        //choose from family of commands
+#elif  __AVX__
+        subSIMD<T,Alloc,typename avx_traits<T>::reg_type>(a,b,c); //only AVX available
+#else
+        ::anpi::fallback::subtract(a,b,c); //no family found, go unoptimized route
+#endif
+      } else { // allocator seems to be unaligned
+        ::anpi::fallback::subtract(a,b,c); //go unoptimized route
+      }
+    }
+
+    // Non-SIMD types such as complex
+    template<typename T,
+             class Alloc,
+             typename std::enable_if<!is_simd_type<T>::value,int>::type = 0>
+    inline void sub(const Matrix<T,Alloc>& a,
+                    const Matrix<T,Alloc>& b,
+                    Matrix<T,Alloc>& c) {
+      ::anpi::fallback::subtract(a,b,c); // go unoptimized route
     }
 
     // In-place implementation a = a-b
     template<typename T,class Alloc>
-    inline void subtract(Matrix<T,Alloc>& a,
+    inline void sub(Matrix<T,Alloc>& a,
                          const Matrix<T,Alloc>& b) {
 
-      ::anpi::fallback::subtract(a,b);
+      sub(a,b,a); //reuse all the code
     }
+*/
+/////////////////////////////////////////////////////////////////////////////// - END OF MYCODE
+
   } // namespace simd
 
 
