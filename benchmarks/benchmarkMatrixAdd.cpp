@@ -8,8 +8,8 @@
  * @date   29.12.2017
  */
 
-
-/*#include <boost/test/unit_test.hpp>
+/*
+#include <boost/test/unit_test.hpp>
 
 
 #include <iostream>
@@ -20,7 +20,8 @@
 /**
  * Unit tests for the matrix class
  */
-/*#include "benchmarkFramework.hpp"
+/*
+#include "benchmarkFramework.hpp"
 #include "Matrix.hpp"
 #include "Allocator.hpp"
 
@@ -40,6 +41,7 @@ protected:
   anpi::Matrix<T> _a;
   anpi::Matrix<T> _b;
   anpi::Matrix<T> _c;
+
 public:
   /// Construct
   benchAdd(const size_t maxSize)
@@ -73,9 +75,22 @@ public:
     anpi::fallback::add(this->_a,this->_b);
   }
 };
-
-/// Provide the evaluation method for on-copy addition 
+/*
+/// Provide the evaluation method for in-place substraction 
 template<typename T>
+class benchSubInPlaceFallback : public benchAdd<T> {
+public:
+  /// Constructor
+  benchSubInPlaceFallback(const size_t n) : benchAdd<T>(n) { }
+  
+  // Evaluate add in-place
+  inline void eval() {
+    anpi::fallback::sub(this->_a,this->_b);
+  }
+};
+*/
+/// Provide the evaluation method for on-copy addition 
+/*template<typename T>
 class benchAddOnCopyFallback : public benchAdd<T> {
 public:
   /// Constructor
@@ -86,9 +101,23 @@ public:
     anpi::fallback::add(this->_a,this->_b,this->_c);
   }
 };
+/*
+/// Provide the evaluation method for on-copy substraction 
+template<typename T>
+class benchSubOnCopyFallback : public benchAdd<T> {
+public:
+  /// Constructor
+  benchSubOnCopyFallback(const size_t n) : benchAdd<T>(n) { }
+  
+  // Evaluate sub on-copy
+  inline void eval() {
+    anpi::fallback::sub(this->_a,this->_b,this->_c);
+  }
+};
+*/
 
 /// Provide the evaluation method for in-place addition 
-template<typename T>
+/*template<typename T>
 class benchAddInPlaceSIMD : public benchAdd<T> {
 public:
   /// Constructor
@@ -99,9 +128,22 @@ public:
     anpi::simd::add(this->_a,this->_b);
   }
 };
-
-/// Provide the evaluation method for on-copy addition 
+/*
+/// Provide the evaluation method for in-place substraction 
 template<typename T>
+class benchSubInPlaceSIMD : public benchAdd<T> {
+public:
+  /// Constructor
+  benchSubInPlaceSIMD(const size_t n) : benchAdd<T>(n) { }
+  
+  // Evaluate sub in-place
+  inline void eval() {
+    anpi::simd::sub(this->_a,this->_b);
+  }
+};
+*/
+/// Provide the evaluation method for on-copy addition 
+/*template<typename T>
 class benchAddOnCopySIMD : public benchAdd<T> {
 public:
   /// Constructor
@@ -111,7 +153,22 @@ public:
   inline void eval() {
     anpi::simd::add(this->_a,this->_b,this->_c);
   }
-};*/
+};
+/*
+/// Provide the evaluation method for on-copy substraction 
+template<typename T>
+class benchSubOnCopySIMD : public benchAdd<T> {
+public:
+  /// Constructor
+  benchSubOnCopySIMD(const size_t n) : benchAdd<T>(n) { }
+  
+  // Evaluate sub on-copy
+  inline void eval() {
+    anpi::simd::sub(this->_a,this->_b,this->_c);
+  }
+};
+
+*/
 
 /**
  * Instantiate and test the methods of the Matrix class
@@ -192,5 +249,64 @@ public:
   
   ::anpi::benchmark::show();
 }
+
+
+/**
+ * Instantiate and test the methods of the Matrix class
+ */
+/*BOOST_AUTO_TEST_CASE( Sub ) {
+
+  std::vector<size_t> sizes = {  24,  32,  48,  64,
+                                 96, 128, 192, 256,
+                                384, 512, 768,1024,
+                               1536,2048,3072,4096};
+
+  const size_t n=sizes.back();
+  const size_t repetitions=100;
+  std::vector<anpi::benchmark::measurement> times;
+
+  {
+    benchSubOnCopyFallback<float>  bsoc(n);
+
+    // Measure on-copy add
+    ANPI_BENCHMARK(sizes,repetitions,times,bsoc);
+    
+    ::anpi::benchmark::write("sub_on_copy_float_fb.txt",times);
+    ::anpi::benchmark::plotRange(times,"On-copy (float) fallback","r");
+  }
+
+  {
+    benchSubOnCopySIMD<float>  bsoc(n);
+
+    // Measure on-copy add
+    ANPI_BENCHMARK(sizes,repetitions,times,baoc);
+    
+    ::anpi::benchmark::write("sub_on_copy_float_simd.txt",times);
+    ::anpi::benchmark::plotRange(times,"On-copy (float) simd","g");
+  }
+  
+  {
+    benchSubInPlaceFallback<float> bsip(n);
+
+    // Measure in place add
+    ANPI_BENCHMARK(sizes,repetitions,times,bsip);
+
+    ::anpi::benchmark::write("bus_in_place_float_fb.txt",times);
+    ::anpi::benchmark::plotRange(times,"In-place (float) fallback","b");
+  }
+
+  {
+    benchSubInPlaceSIMD<float> bsip(n);
+
+    // Measure in place add
+    ANPI_BENCHMARK(sizes,repetitions,times,baip);
+
+    ::anpi::benchmark::write("add_in_place_float_simd.txt",times);
+    ::anpi::benchmark::plotRange(times,"In-place (float) simd","m");
+  }
+  
+  ::anpi::benchmark::show();
+}
+
   
 BOOST_AUTO_TEST_SUITE_END()*/
