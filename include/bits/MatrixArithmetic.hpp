@@ -374,7 +374,7 @@ namespace anpi
       add(a,b,a);
     }
 
-//////////////////////////////////////////////////////////////////////////////// - MYCODE
+//////////////////////////////////////////////////////////////////////////////// - START OF MYCODE
 
 	/*
      * Subtraction
@@ -382,7 +382,7 @@ namespace anpi
 
     /// We wrap the intrinsics methods to be polymorphic versions
     template<typename T,class regType>
-    regType mm_add(regType,regType); // We don't implement this to cause, at
+    regType mm_sub(regType,regType); // We don't implement this to cause, at
                                      // least, a linker error if this version is
                                      // used.
 
@@ -443,8 +443,6 @@ namespace anpi
     }
 #endif
 
-//////////////////////////////////////////////////////////////////////////////// - EOF MYCODE
-/*
     // On-copy implementation c=a-b
     template<typename T,class Alloc,typename regType>
     inline void subSIMD(const Matrix<T,Alloc>& a,
@@ -478,7 +476,7 @@ namespace anpi
     template<typename T,
 	     class Alloc,
 	     typename std::enable_if<is_simd_type<T>::value,int>::type=0>
-    inline void sub(const Matrix<T,Alloc>& a,
+    inline void subtract(const Matrix<T,Alloc>& a,
                     const Matrix<T,Alloc>& b,
                     Matrix<T,Alloc>& c) {
 
@@ -486,7 +484,7 @@ namespace anpi
               (a.cols() == b.cols()) );
 
       if (is_aligned_alloc<Alloc>::value) {        //choose from family of commands
-#elif  __AVX__
+#ifdef __AVX__
         subSIMD<T,Alloc,typename avx_traits<T>::reg_type>(a,b,c); //only AVX available
 #else
         ::anpi::fallback::subtract(a,b,c); //no family found, go unoptimized route
@@ -500,7 +498,7 @@ namespace anpi
     template<typename T,
              class Alloc,
              typename std::enable_if<!is_simd_type<T>::value,int>::type = 0>
-    inline void sub(const Matrix<T,Alloc>& a,
+    inline void subtract(const Matrix<T,Alloc>& a,
                     const Matrix<T,Alloc>& b,
                     Matrix<T,Alloc>& c) {
       ::anpi::fallback::subtract(a,b,c); // go unoptimized route
@@ -508,12 +506,12 @@ namespace anpi
 
     // In-place implementation a = a-b
     template<typename T,class Alloc>
-    inline void sub(Matrix<T,Alloc>& a,
+    inline void subtract(Matrix<T,Alloc>& a,
                          const Matrix<T,Alloc>& b) {
 
-      sub(a,b,a); //reuse all the code
+      subtract(a,b,a); //reuse all the code
     }
-*/
+
 /////////////////////////////////////////////////////////////////////////////// - END OF MYCODE
 
   } // namespace simd
@@ -529,4 +527,3 @@ namespace anpi
   
 } // namespace anpi
 
-#endif
