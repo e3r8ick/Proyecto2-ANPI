@@ -21,6 +21,7 @@
 #include <Matrix.hpp>
 #include <Exception.hpp>
 
+
 int main() {
   // Build the name of the image in the data path
   std::string mapPath = std::string( ANPI_DATA_PATH ) + "/mapa.png";
