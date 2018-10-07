@@ -375,8 +375,7 @@ namespace anpi
     }
 
 //////////////////////////////////////////////////////////////////////////////// - START OF MYCODE
-
-	/*
+    /*
      * Subtraction
      */
 
@@ -390,7 +389,7 @@ namespace anpi
 	// depending on data type, create a and b of type "256 bit data block"
 	// execute matching (to data type) AVX operation
 
-#elif defined __AVX__
+#ifdef __AVX__
     template<>
     inline __m256d __attribute__((__always_inline__))
     mm_sub<double>(__m256d a,__m256d b) {
@@ -440,8 +439,8 @@ namespace anpi
     inline __m256i __attribute__((__always_inline__))
     mm_sub<int8_t>(__m256i a,__m256i b) {
       return _mm256_sub_epi8(a,b);
-    }/*
-#elif  defined __SSE2__
+    }
+#elif defined __SSE2__
     template<>
     inline __m128d __attribute__((__always_inline__))
     mm_sub<double>(__m128d a,__m128d b) {
@@ -470,7 +469,7 @@ namespace anpi
     template<>
     inline __m128i __attribute__((__always_inline__))
     mm_sub<std::int32_t>(__m128i a,__m128i b) {
-      return _mm_sub_epi16(a,b);
+      return _mm_sub_epi32(a,b);
     }
     template<>
     inline __m128i __attribute__((__always_inline__))
@@ -480,18 +479,18 @@ namespace anpi
     template<>
     inline __m128i __attribute__((__always_inline__))
     mm_sub<std::int16_t>(__m128i a,__m128i b) {
-      return _mm_sub_epi32(a,b);
-    }
-    template<>
-    inline __m128i __attribute__((__always_inline__))
-    mm_sub<std::uint8_t>(__m128i a,__m128i b) {
       return _mm_sub_epi16(a,b);
     }
     template<>
     inline __m128i __attribute__((__always_inline__))
+    mm_sub<std::uint8_t>(__m128i a,__m128i b) {
+      return _mm_sub_epi8(a,b);
+    }
+    template<>
+    inline __m128i __attribute__((__always_inline__))
     mm_sub<std::int8_t>(__m128i a,__m128i b) {
-      return _mm_sub_epi32(a,b);
-    }*/
+      return _mm_sub_epi8(a,b);
+    }
 #endif
 
     // On-copy implementation c=a-b
@@ -534,18 +533,17 @@ namespace anpi
       assert( (a.rows() == b.rows()) && //ensure same size matrix
               (a.cols() == b.cols()) );
 
-      if (is_aligned_alloc<Alloc>::value) {        //choose from family of commands
-#ifdef __AVX__
-        subSIMD<T,Alloc,typename avx_traits<T>::reg_type>(a,b,c);  //AVX available
-/*
-#elif  __SSE2__
-        subSIMD<T,Alloc,typename sse2_traits<T>::reg_type>(a,b,c); //SSE2 Availble
-*/
-#else
-        ::anpi::fallback::subtract(a,b,c); //no family found, go unoptimized route
-#endif
+
+      if (is_aligned_alloc<Alloc>::value) {        
+	#ifdef __AVX__
+		subSIMD<T,Alloc,typename avx_traits<T>::reg_type>(a,b,c);
+	#elif  __SSE2__
+		subSIMD<T,Alloc,typename sse2_traits<T>::reg_type>(a,b,c);
+	#else
+		::anpi::fallback::subtract(a,b,c);
+	#endif
       } else { // allocator seems to be unaligned
-        ::anpi::fallback::subtract(a,b,c); //go unoptimized route
+        ::anpi::fallback::subtract(a,b,c);
       }
     }
 
@@ -582,3 +580,4 @@ namespace anpi
   
 } // namespace anpi
 
+#endif //for top #ifndef ANPI_MATRIX_ARITHMETIC_HPP
