@@ -47,24 +47,23 @@ class ResistorGrid{
     public:
     
     ///Conastruct
-    /* ResistorGrid::ResistorGrid(Matrix<float> A, std::vector<float> b, Matrix<float> rawMap){
+    ResistorGrid(Matrix<float> A, std::vector<float> b, Matrix<float> rawMap){
         A_ = A;
         b_ = b;
         rawMap_ = rawMap;
-    } */
+    } 
 
     /**
      * Map the index of the terminal nodes
      * */
-    std::size_t ResistorGrid::nodeToIndex(const std::size_t row1,
-                                      const std::size_t col1,
-                                      const std::size_t row2,
-                                      const std::size_t col2)
+    std::size_t nodeToIndex(const std::size_t row1,
+                            const std::size_t col1,
+                            const std::size_t row2,
+                            const std::size_t col2)
     {
         if(row1 <= 0 || col1 <= 0 || row2 <= 0 || col2 <= 0){
             throw anpi::Exception("Indices <= 0; no son validos");
         }
-        
         else if (row1 == row2 && col1 == col2)
         {
             throw anpi::Exception("Indices iguales");
@@ -104,7 +103,7 @@ class ResistorGrid{
                 cooMenor = col1;
             }
 
-            size_t n = A_.cols;
+            size_t n = A_.cols();
             size_t result = 2 * rowMayor * (n-1) + cooMenor + rowMenor + 1;
 
             if(rowMayor == rowMenor){
@@ -117,10 +116,10 @@ class ResistorGrid{
     }   
 
     /// Convert an inde x to the pair of node coordinates
-    indexPair ResistorGrid::indexToNodes (const std::size_t idx){
+    indexPair indexToNodes (const std::size_t idx){
         anpi::indexPair coordenadas;
         size_t iMayor, iMenor, jMayor, jMenor;
-        size_t n = A_.cols;
+        size_t n = A_.cols();
         size_t mn = 2*n-1;
         size_t mod = idx % mn;
         size_t divi = idx/mn;
