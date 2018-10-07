@@ -151,6 +151,102 @@ class ResistorGrid{
         return coordenadas;
     }
 
+    //verifica si el nodo es una esquina
+    bool isCorner(size_t i, size_t j, size_t m, size_t n){
+        if (i == 0 && j == 0){
+            return true;
+        }else if(i == m-1 && j == n-1){
+            return true;
+        }else if(i == 0 && j == n-1){
+            return true;
+        }else if (i == m-1 && j == 0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    //ecuaciones de nodos
+    template <typename T>
+    void nodos(size_t m, size_t n, Matrix<T> &A, size_t iin, size_t jin, 
+            size_t ifin, size_t jfin, std::vector<T> b){
+        bool eliminado = false;
+        size_t index = 0;
+        size_t m1, m2, m3, m4;
+        for(int i=0; i < m; ++i){
+            for(int j=0; j<n; ++j){
+                if (index >= (2*m*n - m - n)){
+                    std::cout << "here" << std::endl;
+                }
+                
+                m1=nodeToIndex(i-1, j, i ,j);
+                m2=nodeToIndex(i, j, i,j+1);
+                m3=nodeToIndex(i+1, j, i,j);
+                m4=nodeToIndex(i, j-1, i ,j);
+                
+                if (m4 != 0){
+                    A[index][m4-1] = 1.0;
+                }if (m1 != 0){
+                    A[index][m1-1] = 1.0;
+                }if (m2 != 0){
+                    A[index][m2-1] = -1.0;    
+                }if (m3 != 0){
+                    A[index][m3-1] = -1.0;
+                }
+                
+                if ((i == iin) && (j == jin)){ //inicio
+                    std::cout << "inicio: ";
+                    b[index] = 1.0;
+                    std::cout << " /inicio" <<std::endl;
+                    ++index;
+                }else if ((i == ifin) && (j == jfin)){ // final
+                    std::cout << "final: ";
+
+                    b[index] = -1.0;
+                    std::cout << " /final" <<std::endl;
+                    ++index;
+                    
+                }else if (!eliminado && isCorner(i, j, m, n)){
+                    if (m4 != 0){
+                    A[index][m4-1] = 0;
+                    }if (m1 != 0){
+                        A[index][m1-1] = 0;
+                    }if (m2 != 0){
+                        A[index][m2-1] = 0;    
+                    }if (m3 != 0){
+                        A[index][m3-1] = 0;
+                    }
+                    eliminado = true;
+                }else{
+                    ++index;
+                }
+            } // end for j
+        }//end for i
+        std::cout << "end nodos" << std::endl;
+    }
+
+    //ecuacioens de mallas 
+    template <typename T>
+    void mallas(int m, int n, Matrix<T> &A, const std::vector<int> &resistors){
+        int index = m*n -1; //initial index to place the equations in A
+        int m1, m2, m3, m4;
+        for (int i = 0; i < (m-1); ++i){
+            for (int j = 0; j< (n-1); ++j){
+                //obtener posiciones para las resitencias
+                m1 = nodeToIndex(i, j, i, j+1); // derecha adyacente al nodo (pos)
+                m2 = nodeToIndex(i, j+1, i+1, j+1); //derecha para abajo (pos)
+                m3 = nodeToIndex(i+1, j, i+1, j+1); // abajo acostada (neg)
+                m4 = nodeToIndex(i , j, i+1, j); //abajo adyancente al nodo (neg)
+
+                A[index][m1-1] = (T) resistors[m1-1];
+                A[index][m2-1] = (T) resistors[m2-1];
+                A[index][m3-1] = (T) -resistors[m3-1];
+                A[index][m4-1] = (T) -resistors[m4-1];    
+                index++;       
+            }
+        }
+    }
+
     /**
      * Construct the grid from the given file
      * @retturn true if successful or false otherwise 
