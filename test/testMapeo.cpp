@@ -31,6 +31,21 @@ namespace anpi {
       // The result
       std::size_t result;
 
+      // test result
+      {
+        Matrix<float> A = {{1.0,7.0,6.0,4.0},{2.0,17.0,27.0,17.0}};
+        std::vector<float> p;
+        const size_t row1 = 1;
+        const size_t col1 = 1;
+        const size_t row2 = 2;
+        const size_t col2 = 1;
+
+
+        ResistorGrid a = ResistorGrid(A,p,A);
+        result = a.ResistorGrid::nodeToIndex(row1, col1, row2, col2);
+        BOOST_CHECK(result == 12);
+      }
+
       // teste de indices iguales
       {
         Matrix<float> A = {{1.0,7.0,6.0,4.0},{2.0,17.0,27.0,17.0}};

@@ -29,25 +29,28 @@ namespace anpi {
     void mapeoInversoTest() {
 
       // The result
-      std::size_t result;
+      anpi::indexPair result;
 
       // teste de indices iguales
       {
         Matrix<float> A = {{1.0,7.0,6.0,4.0},{2.0,17.0,27.0,17.0}};
         std::vector<float> p;
-        const size_t idx = 1;
+        const size_t idx = 12;
 
 
         ResistorGrid a = ResistorGrid(A,p,A);
-        a.ResistorGrid::indexToNodes(idx);
-        BOOST_CHECK();
+        result = a.ResistorGrid::indexToNodes(idx);
+        BOOST_CHECK(result.row1==1);
+        BOOST_CHECK(result.col1==1);
+        BOOST_CHECK(result.row2==2);
+        BOOST_CHECK(result.col2==1);
       }
     }
 
   } // test
 }  // anpi
 
-BOOST_AUTO_TEST_SUITE( Mapeo )
+BOOST_AUTO_TEST_SUITE( MapeoInverso )
 
 BOOST_AUTO_TEST_CASE(ResistorGrid) 
 {

@@ -68,19 +68,8 @@ class ResistorGrid{
         {
             throw anpi::Exception("Indices iguales");
         }
-        else if (!((row1+1) == row2 && col1 == col2))
-        {
-            throw anpi::Exception("Indices no son adyacentes");
-        }
-        else if (!((row1-1) == row2 && col1 == col2))
-        {
-            throw anpi::Exception("Indices no son adyacentes");
-        }
-        else if (!(row1 == row2 && (col1+1) == col2))
-        {
-            throw anpi::Exception("Indices no son adyacentes");
-        }
-        else if (!(row1 == row2 && (col1-1) == col2))
+        else if (!((((row1+1) == row2 && col1 == col2) || ((row1-1) == row2 && col1 == col2)) || 
+                ((row1 == row2 && (col1+1) == col2) || (row1 == row2 && (col1-1) == col2))))
         {
             throw anpi::Exception("Indices no son adyacentes");
         }
