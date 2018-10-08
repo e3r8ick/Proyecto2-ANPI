@@ -112,7 +112,7 @@ namespace anpi {
                            {-1, -1, 0}};
         std::vector<float> b = {1,0,-1};
         std::vector<float> x;
-        solveLU(A, x, b);
+        simpl::solveLU(A, x, b);
 
         const T eps = std::numeric_limits<T>::epsilon();
         //primera solución -3
@@ -132,7 +132,7 @@ namespace anpi {
         std::vector<float> x;
 
         try {
-          solveLU(A, x, b);
+          simpl::solveLU(A, x, b);
           BOOST_CHECK_MESSAGE(false,"Divide by 0 not catch");
         }
         catch(anpi::Exception& exc) {
@@ -148,17 +148,17 @@ BOOST_AUTO_TEST_SUITE( LU )
 
 BOOST_AUTO_TEST_CASE(Doolittle) 
 {
-  anpi::test::luTest<float>(anpi::luDoolittle<float>,
-                            anpi::unpackDoolittle<float>);
-  anpi::test::luTest<double>(anpi::luDoolittle<double>,
-                             anpi::unpackDoolittle<double>);
+  anpi::test::luTest<float>(anpi::lumpl::luDoolittle<float>,
+                            anpi::lumpl::unpackDoolittle<float>);
+  anpi::test::luTest<double>(anpi::lumpl::luDoolittle<double>,
+                             anpi::lumpl::unpackDoolittle<double>);
 }
-
+/*
 BOOST_AUTO_TEST_CASE(Crout) 
 {
   anpi::test::luTest<float>(anpi::luCrout<float>,anpi::unpackCrout<float>);
   anpi::test::luTest<double>(anpi::luCrout<double>,anpi::unpackCrout<double>);
 }
-
+*/
 
 BOOST_AUTO_TEST_SUITE_END()

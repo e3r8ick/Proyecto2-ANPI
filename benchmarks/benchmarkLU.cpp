@@ -27,7 +27,7 @@
 #include "LUDoolittle.hpp"
 #include "LUCrout.hpp"
 
-BOOST_AUTO_TEST_SUITE( Maxtrix )
+BOOST_AUTO_TEST_SUITE( MatrixLU )
 
 /// Benchmark for addition operations
 template<typename T>
@@ -64,7 +64,7 @@ public:
   }
 };
 
-/// Provide the evaluation Doolittle method 
+/// Provide the evaluation Doolittle method (float)
 template<typename T>
 class benchDoolittleFloat : public benchLU<T> {
 public:
@@ -73,20 +73,20 @@ public:
   
   // Evaluate Doolittle
   inline void eval() {
-    anpi::luDoolittle(this->A,this->LU, this->p);
+    anpi::fallback::luDoolittle(this->A,this->LU, this->p);
   }
 };
 
-/// Provide the evaluation Crout method 
+/// Provide the evaluation Doolittle method (float) with SIMD optimization
 template<typename T>
-class benchCroutFloat : public benchLU<T> {
+class benchDoolittleFloatSIMD : public benchLU<T> {
 public:
   /// Constructor
-  benchCroutFloat(const size_t n) : benchLU<T>(n) { }
+  benchDoolittleFloatSIMD(const size_t n) : benchLU<T>(n) { }
   
-  // Evaluate Crout
+  // Evaluate Doolittle
   inline void eval() {
-    anpi::luCrout(this->A,this->LU, this->p);
+    anpi::simd::luDoolittle(this->A,this->LU, this->p);
   }
 };
 
@@ -99,22 +99,23 @@ public:
   
   // Evaluate add in-place
   inline void eval() {
-    anpi::luDoolittle(this->A,this->LU, this->p);
+    anpi::fallback::luDoolittle(this->A,this->LU, this->p);
   }
 };
 
-/// Provide the evaluation Crout method 
+/// Provide the evaluation Doolittle method (Double) with SIMD optimization
 template<typename T>
-class benchCroutDouble : public benchLU<T> {
+class benchDoolittleDoubleSIMD : public benchLU<T> {
 public:
   /// Constructor
-  benchCroutDouble(const size_t n) : benchLU<T>(n) { }
+  benchDoolittleDoubleSIMD(const size_t n) : benchLU<T>(n) { }
   
-  // Evaluate add on-copy
+  // Evaluate add in-place
   inline void eval() {
-    anpi::luCrout(this->A,this->LU, this->p);
+    anpi::simd::luDoolittle(this->A,this->LU, this->p);
   }
 };
+
 
 /**
  * Instantiate and test the methods of the Matrix class
@@ -122,13 +123,12 @@ public:
 BOOST_AUTO_TEST_CASE( LU ) {
 
   std::vector<size_t> sizes = {  24,  32,  48,  64,
-                                 96, 128, 192, 256,
-                                384, 512, 768,1024};//para que dure menos tiempos se quitaron elementos
+                                 96, 128, 192, 256};//para que dure menos tiempos se quitaron elementos
 
   const size_t n=sizes.back();
   const size_t repetitions=100;
   std::vector<anpi::benchmark::measurement> times;
-
+/*
   {
     benchCroutFloat<float>  bc(n);
 
@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE( LU ) {
     ::anpi::benchmark::write("Crout_double.txt",times);
     ::anpi::benchmark::plotRange(times,"Crout (double) ","g");
   }
-
+*/
   {
     benchDoolittleFloat<float> bd(n);
 
@@ -167,6 +167,26 @@ BOOST_AUTO_TEST_CASE( LU ) {
 
     ::anpi::benchmark::write("Doolittle_double.txt",times);
     ::anpi::benchmark::plotRange(times,"Doolittle (double)","m");
+  }
+  
+    {
+    benchDoolittleDoubleSIMD<float> bd(n);
+
+    // Measure Doolittle float
+    ANPI_BENCHMARK(sizes,repetitions,times,bd);
+
+    ::anpi::benchmark::write("Doolittle_float_simd.txt",times);
+    ::anpi::benchmark::plotRange(times,"Doolittle SIMD (float)","b");
+  }
+
+  {
+    benchDoolittleDoubleSIMD<double> bd(n);
+
+    // Measure Doolittle double
+    ANPI_BENCHMARK(sizes,repetitions,times,bd);
+
+    ::anpi::benchmark::write("Doolittle_double_simd.txt",times);
+    ::anpi::benchmark::plotRange(times,"Doolittle SIMD (double)","m");
   }
   
 #if 0

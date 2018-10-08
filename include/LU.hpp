@@ -34,7 +34,7 @@ inline void lu(const anpi::Matrix<T> &A,
                anpi::Matrix<T> &LU,
                std::vector<size_t> &p)
 {
-    anpi::luDoolittle(A, LU, p);
+    anpi::lumpl::luDoolittle(A, LU, p);
     
 }
 
