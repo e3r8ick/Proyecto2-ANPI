@@ -37,7 +37,7 @@ void invert(const anpi::Matrix<T> &A, anpi::Matrix<T> &Ai){
     for (int j = 0; j < n; ++j){
         ij = std::vector<T>(A.rows(), 0.0);
         ij[j] = 1;
-        solveLU(A, Aj, ij);
+        simpl::solveLU(A, Aj, ij);
         for (int i = 0; i < n; ++i ){
             Ai[i][j] = Aj[i];
         }

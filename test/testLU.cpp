@@ -112,7 +112,7 @@ namespace anpi {
                            {-1, -1, 0}};
         std::vector<float> b = {1,0,-1};
         std::vector<float> x;
-        solveLU(A, x, b);
+        fallback::solveLU(A, x, b);
 
         const T eps = std::numeric_limits<T>::epsilon();
         //primera solución -3
@@ -132,13 +132,51 @@ namespace anpi {
         std::vector<float> x;
 
         try {
-          solveLU(A, x, b);
+          fallback::solveLU(A, x, b);
           BOOST_CHECK_MESSAGE(false,"Divide by 0 not catch");
         }
         catch(anpi::Exception& exc) {
           BOOST_CHECK_MESSAGE(true,"Divide by 0 catch");
         }
       }
+      
+      //Test solve LU with SIMD optimization 
+      {
+        anpi::Matrix<float> A = {{-1, -2, 1},
+                           {2, 0, 1},
+                           {-1, -1, 0}};
+        std::vector<float> b = {1,0,-1};
+        std::vector<float> x;
+        simd::solveLU(A, x, b);
+
+        const T eps = std::numeric_limits<T>::epsilon();
+        //primera solución -3
+        BOOST_CHECK(abs(x[0]+3) < eps);
+        //primera solución 4
+        BOOST_CHECK(abs(x[1]-4) < eps);
+        //primera solución 6
+        BOOST_CHECK(abs(x[2]-6) < eps);
+      }
+
+      //Test solve LU with SIMD optimization and an error 
+      {
+        anpi::Matrix<float> A = {{0, 0, 0},
+                           {0, 0, 0},
+                           {0, 0, 0}};
+        std::vector<float> b = {1,0,-1};
+        std::vector<float> x;
+
+        try {
+          simd::solveLU(A, x, b);
+          BOOST_CHECK_MESSAGE(false,"Divide by 0 not catch");
+        }
+        catch(anpi::Exception& exc) {
+          BOOST_CHECK_MESSAGE(true,"Divide by 0 catch");
+        }
+      }
+      
+      
+      
     }
 
   } // test
@@ -148,17 +186,25 @@ BOOST_AUTO_TEST_SUITE( LU )
 
 BOOST_AUTO_TEST_CASE(Doolittle) 
 {
-  anpi::test::luTest<float>(anpi::luDoolittle<float>,
-                            anpi::unpackDoolittle<float>);
-  anpi::test::luTest<double>(anpi::luDoolittle<double>,
-                             anpi::unpackDoolittle<double>);
+  anpi::test::luTest<float>(anpi::fallback::luDoolittle<float>,
+                            anpi::fallback::unpackDoolittle<float>);
+  anpi::test::luTest<double>(anpi::fallback::luDoolittle<double>,
+                             anpi::fallback::unpackDoolittle<double>);
 }
 
+BOOST_AUTO_TEST_CASE(DoolittleSIMD) 
+{
+  anpi::test::luTest<float>(anpi::simd::luDoolittle<float>,
+                            anpi::simd::unpackDoolittle<float>);
+  anpi::test::luTest<double>(anpi::simd::luDoolittle<double>,
+                             anpi::simd::unpackDoolittle<double>);
+}
+/*
 BOOST_AUTO_TEST_CASE(Crout) 
 {
   anpi::test::luTest<float>(anpi::luCrout<float>,anpi::unpackCrout<float>);
   anpi::test::luTest<double>(anpi::luCrout<double>,anpi::unpackCrout<double>);
 }
-
+*/
 
 BOOST_AUTO_TEST_SUITE_END()
