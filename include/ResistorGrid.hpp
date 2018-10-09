@@ -25,11 +25,11 @@ namespace anpi
 
     ///Pack a pair of indices of the nodes of a resistor
     struct indexPair {
-        ///Row mof the first node
+        ///Row of the first node
         std::size_t row1;
         //Column of the first node 
         std::size_t col1;
-        ///Row mof the second node
+        ///Row of the second node
         std::size_t row2;
         //Column of the second node 
         std::size_t col2;
@@ -69,7 +69,7 @@ class ResistorGrid{
             throw anpi::Exception("Indices iguales");
         }
         else if (!((((row1+1) == row2 && col1 == col2) || ((row1-1) == row2 && col1 == col2)) || 
-                ((row1 == row2 && (col1+1) == col2) || (row1 == row2 && (col1-1) == col2))))
+                ((row1 == row2 && (col1+1) == col2) || (row1 == row2 && (col1-10) == col2))))
         {
             throw anpi::Exception("Indices no son adyacentes");
         }
@@ -233,10 +233,10 @@ class ResistorGrid{
         for (int i = 0; i < (m-1); ++i){
             for (int j = 0; j< (n-1); ++j){
                 //obtener posiciones para las resitencias
-                m1 = nodeToIndex(i, j, i, j+1); // derecha adyacente al nodo (pos)
-                m2 = nodeToIndex(i, j+1, i+1, j+1); //derecha para abajo (pos)
-                m3 = nodeToIndex(i+1, j, i+1, j+1); // abajo acostada (neg)
-                m4 = nodeToIndex(i , j, i+1, j); //abajo adyancente al nodo (neg)
+                m1 = nodeToIndex(i, j, i, j+1); // derecha adyacente al nodo (pos]
+                m2 = nodeToIndex(i, j+1, i+1, j+1); //derecha para abajo (pos]
+                m3 = nodeToIndex(i+1, j, i+1, j+1); // abajo acostada (neg]
+                m4 = nodeToIndex(i , j, i+1, j); //abajo adyancente al nodo (neg]
 
                 A[index][m1-1] = (T) resistors[m1-1];
                 A[index][m2-1] = (T) resistors[m2-1];
@@ -248,6 +248,218 @@ class ResistorGrid{
     }
 
     /**
+     * Finds the trajectory of the biggest current 
+     * rowI: initial row
+     * colI: initial col 
+     * */
+    template <typename T>
+    void trajectoryFinder(size_t rowI, size_t colI,size_t rowF, size_t colF, std::vector<size_t> x_){
+        std::vector<size_t> trajectoryX;
+        std::vector<size_t> trajectoryY;
+
+        size_t n = rawMap_.rows();
+        size_t m = rawMap_.cols();
+
+        size_t colN = colI + 1; //next column
+        size_t colP = colI - 1; //previous column
+        size_t rowN = rowI + 1; //next row
+        size_t rowP = rowI - 1; //previous row
+
+        size_t checkedRow = rowI; //node already checked
+        size_t checkedCol = colI;
+
+        trajectoryX.push_back(rowI);
+        trajectoryY.push_back(colI);
+
+        size_t index1 = 0;
+        size_t index2 = 0;
+        size_t index3 = 0;
+
+        size_t higher;
+
+        indexPair pair;
+
+
+        while(colI != colF && rowI != rowF){
+            if(rowI < 0 || colI < 0){
+                throw anpi::Exception("Punto inicial menor a cero");
+            }
+            else if((checkedRow == rowI && checkedCol == colI) && (colN != m && rowN != n) && colP > 0){
+                index1 = nodeToIndex(rowI,colI,rowI,colN);
+                index2 = nodeToIndex(rowI,colI,rowN,colI);
+                index3 = nodeToIndex(rowI,colP,rowI,colI);
+                higher = getHigher(x_[index1],index1,x_[index2],index2,x_[index3],index3);
+                pair = indexToNodes(higher);
+                rowI = pair.row1;
+                colI = pair.col1;
+                trajectoryX.push_back(checkedRow);
+                trajectoryY.push_back(checkedCol);
+            }
+            else if((checkedRow == rowI && checkedCol == colI) && (colN != m && rowN != n) && rowP > 0){
+                index1 = nodeToIndex(rowI,colI,rowI,colN);
+                index2 = nodeToIndex(rowI,colI,rowN,colI);
+                index3 = nodeToIndex(rowP,colI,rowI,colI);
+                higher = getHigher(x_[index1],index1,x_[index2],index2,x_[index3],index3);
+                pair = indexToNodes(higher);
+                rowI = pair.row1;
+                colI = pair.col1;
+                trajectoryX.push_back(rowI);
+                trajectoryY.push_back(colI);
+            }
+            else if((checkedRow == rowI && checkedCol == colI) && colN == m){
+                index1 = nodeToIndex(rowI,colI,rowN,colI);
+                index2 = nodeToIndex(rowI,colP,rowI,colI);
+                higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
+                pair = indexToNodes(higher);
+                rowI = pair.row1;
+                colI = pair.col1;
+                trajectoryX.push_back(rowI);
+                trajectoryY.push_back(colI);
+            }
+            else if((checkedRow == rowI && checkedCol == colI) && rowN == m){
+                index1 = nodeToIndex(rowI,colI,rowI,colN);
+                index2 = nodeToIndex(rowI,colP,rowI,colI);
+                higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
+                pair = indexToNodes(higher);
+                rowI = pair.row1;
+                colI = pair.col1;
+                trajectoryX.push_back(rowI);
+                trajectoryY.push_back(colI);
+            }
+            else if((checkedRow == rowI && checkedCol == colI) && colP < 0){
+                index1 = nodeToIndex(rowI,colI,rowI,colN);
+                index2 = nodeToIndex(rowI,colI,rowN,colI);
+                higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
+                pair = indexToNodes(higher);
+                rowI = pair.row1;
+                colI = pair.col1;
+                trajectoryX.push_back(rowI);
+                trajectoryY.push_back(colI);
+            }
+            else if((checkedRow == rowI && checkedCol == colI) && rowP < 0){
+                index1 = nodeToIndex(rowI,colI,rowI,colN);
+                index2 = nodeToIndex(rowI,colI,rowN,colI);
+                higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
+                pair = indexToNodes(higher);
+                rowI = pair.row1;
+                colI = pair.col1;
+                trajectoryX.push_back(rowI);
+                trajectoryY.push_back(colI);
+            }
+            else{
+                if((checkedRow == rowP && checkedCol == colP) && (colN != m && rowN != n) && colP > 0){
+                    index1 = nodeToIndex(rowI,colI,rowI,colN);
+                    index2 = nodeToIndex(rowI,colI,rowN,colI);
+                    index3 = nodeToIndex(rowI,colP,rowI,colI);
+                    higher = getHigher(x_[index1],index1,x_[index2],index2,x_[index3],index3);
+                    pair = indexToNodes(higher);
+                    checkedRow = rowI;
+                    checkedCol = colI;
+                    rowI = pair.row1;
+                    colI = pair.col1;
+                    trajectoryX.push_back(rowI);
+                    trajectoryY.push_back(colI);
+                }
+                else if((checkedRow == rowP && checkedCol == colP) && (colN != m && rowN != n) && rowP > 0){
+                    index1 = nodeToIndex(rowI,colI,rowI,colN);
+                    index2 = nodeToIndex(rowI,colI,rowN,colI);
+                    index3 = nodeToIndex(rowP,colI,rowI,colI);
+                    higher = getHigher(x_[index1],index1,x_[index2],index2,x_[index3],index3);
+                    pair = indexToNodes(higher);
+                    checkedRow = rowI;
+                    checkedCol = colI;
+                    rowI = pair.row1;
+                    colI = pair.col1;
+                    trajectoryX.push_back(rowI);
+                    trajectoryY.push_back(colI);
+                }
+                else if((checkedRow == rowP && checkedCol == colI) && colN == m){
+                    index1 = nodeToIndex(rowI,colI,rowN,colI);
+                    index2 = nodeToIndex(rowI,colP,rowI,colI);
+                    higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
+                    pair = indexToNodes(higher);
+                    checkedRow = rowI;
+                    checkedCol = colI;
+                    rowI = pair.row1;
+                    colI = pair.col1;
+                    trajectoryX.push_back(rowI);
+                    trajectoryY.push_back(colI);
+                }
+                else if((checkedRow == rowP && checkedCol == colI) && rowN == m){
+                    index1 = nodeToIndex(rowI,colI,rowI,colN);
+                    index2 = nodeToIndex(rowI,colP,rowI,colI);
+                    higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
+                    pair = indexToNodes(higher);
+                    checkedRow = rowI;
+                    checkedCol = colI;
+                    rowI = pair.row1;
+                    colI = pair.col1;
+                    trajectoryX.push_back(rowI);
+                    trajectoryY.push_back(colI);
+                }
+                else if((checkedRow == rowP && checkedCol == colI) && colP < 0){
+                    index1 = nodeToIndex(rowI,colI,rowI,colN);
+                    index2 = nodeToIndex(rowI,colI,rowN,colI);
+                    higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
+                    pair = indexToNodes(higher);
+                    checkedRow = rowI;
+                    checkedCol = colI;
+                    rowI = pair.row1;
+                    colI = pair.col1;
+                    trajectoryX.push_back(rowI);
+                    trajectoryY.push_back(colI);
+                }
+                else if((checkedRow == rowP && checkedCol == colI) && rowP < 0){
+                    index1 = nodeToIndex(rowI,colI,rowI,colN);
+                    index2 = nodeToIndex(rowI,colI,rowN,colI);
+                    higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
+                    pair = indexToNodes(higher);
+                    checkedRow = rowI;
+                    checkedCol = colI;
+                    rowI = pair.row1;
+                    colI = pair.col1;
+                    trajectoryX.push_back(rowI);
+                    trajectoryY.push_back(colI);
+                }
+            }
+
+        }
+    }
+
+    /**
+     * Give the higher number
+     * */
+    size_t getHigher(size_t a, size_t ia, size_t b, size_t ib, size_t c,size_t ic){
+        size_t higher;
+        if(a >= b){
+            if(a >=c){
+                higher = ia;
+            }
+            else{
+                higher = ic;
+            }
+        }
+        if(b >= a){
+            if(b >=c){
+                higher = ib;
+            }
+            else{
+                higher = ic;
+            }
+        }
+        if(c >= a){
+            if(c >= b){
+                higher = ic;
+            }
+            else{
+                higher = ib;
+            }
+        }
+        return higher;
+    }
+
+
+    /**
      * Construct the grid from the given file
      * @retturn true if successful or false otherwise 
      * */
@@ -257,6 +469,7 @@ class ResistorGrid{
      * Compute the internal data to navigate between the given nodes
      * */
     bool navigate(const indexPair& nodes);
+        
     };
 
 } //anpi
