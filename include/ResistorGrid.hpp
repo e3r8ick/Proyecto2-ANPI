@@ -13,9 +13,21 @@
 #include <functional>
 #include <iostream>
 #include <algorithm>
+#include <string>
+#include <cstdlib>
 
-#include "Matrix.hpp"
-#include "Exception.hpp"
+#include <Matrix.hpp>
+#include <Exception.hpp>
+
+
+
+#include <AnpiConfig.hpp>
+#include <opencv2/core.hpp>    // For cv::Mat
+#include <opencv2/highgui.hpp> // For cv::imread/imshow
+#include <opencv2/imgcodecs/imgcodecs_c.h>
+#include <opencv2/highgui/highgui_c.h>
+
+
 
 #ifndef ANPI_RESISTORGRID_HPP
 #define ANPI_RESISTORGRID_HPP
@@ -25,7 +37,7 @@ namespace anpi
 
     ///Pack a pair of indices of the nodes of a resistor
     struct indexPair {
-        ///Row mof the first node
+        ///Row of the first node
         std::size_t row1;
         //Column of the first node 
         std::size_t col1;
@@ -46,7 +58,13 @@ class ResistorGrid{
         Matrix<float> rawMap_;
     public:
     
-    ///Conastruct
+    
+    //get rawMap_ for build() tests
+    Matrix<float> getRawMap(){
+        return rawMap_;
+
+    }
+    ///Construct
     ResistorGrid(Matrix<float> A, std::vector<float> b, Matrix<float> rawMap){
         A_ = A;
         b_ = b;
@@ -56,15 +74,13 @@ class ResistorGrid{
     /**
      * Map the index of the terminal nodes
      * */
-    std::size_t nodeToIndex(const std::size_t row1,
+    std::size_t nodesToIndex(const std::size_t row1,
                             const std::size_t col1,
                             const std::size_t row2,
                             const std::size_t col2)
     {
-        if(row1 <= 0 || col1 <= 0 || row2 <= 0 || col2 <= 0){
-            throw anpi::Exception("Indices <= 0; no son validos");
-        }
-        else if (row1 == row2 && col1 == col2)
+        std::size_t result=-1;//variable para contener la respuesta
+        if (row1 == row2 && col1 == col2)
         {
             throw anpi::Exception("Indices iguales");
         }
@@ -74,80 +90,70 @@ class ResistorGrid{
             throw anpi::Exception("Indices no son adyacentes");
         }
         else{
-             size_t rowMayor, rowMenor, cooMenor;
-
-            //sacamos el mayor y menor de rows 
-            if(row1 >= row2){
-                rowMayor = row1;
-                rowMenor = row2;
-            }else{
-                rowMayor = row2;
-                rowMenor = row1;
+            if ( ((row1-1) == row2 && col1 == col2) || (row1 == row2 && (col1-1) == col2) )
+            {
+                throw anpi::Exception("Indices ingresados en orden incorrecto. Primero el de más arriba o más a la izquierda.");
             }
-
-            //sacamos el menor de cols
-            if(col1 >= col2){
-                cooMenor = col2;
-            }else{
-                cooMenor = col1;
+            else 
+            {
+               
+                std::size_t m,n;
+                m=rawMap_.cols();
+                n=rawMap_.rows();
+                if(row1 == row2)//nodos en la misma fila 
+                {
+                    result=row1*(m-1)+col1;
+                }
+                else if (col1 == col2)//nodos en la misma columna
+                {
+                    result=(n*m-n)+col1*(n-1)+row1;
+                }
             }
-
-            size_t n = A_.cols();
-            size_t result = 2 * rowMayor * (n-1) + cooMenor + rowMenor + 1;
-
-            if(rowMayor == rowMenor){
-                return result;
-
-            }
-            return result-(n-1);
 
         }
+        return result;
     }   
 
     /// Convert an inde x to the pair of node coordinates
     indexPair indexToNodes (const std::size_t idx){
         anpi::indexPair coordenadas;
-        size_t iMayor, iMenor, jMayor, jMenor;
-        size_t n = A_.cols();
-        size_t mn = 2*n-1;
-        size_t mod = idx % mn;
-        size_t divi = idx/mn;
+        size_t i1, i2, j1, j2;
+        size_t m=rawMap_.cols();
+        size_t n=rawMap_.rows();
+        size_t rf=n*m-n;//referencia de ultimo indice utilizado en el mapeo horizontal
 
-        //sacamos j e i mayor y menor
-        if (mod == 0){ // last column
-            iMayor = divi;
-            iMenor = divi - 1;
-            jMayor = jMenor = n-1;
-            coordenadas = {
-                iMenor,
-                jMayor,
-                jMayor,
-                jMenor
-            };
+        if (idx <= rf)//indice corrresponde a una fila de resistencias
+        {
+            if ((idx+1)%(m-1)!=0)// definicion de fila del primer indice
+            {
+                i1=(idx+1)/(m-1);
+            }else
+            {
+                i1=(idx+1)/(m-1)-1;
+            }
+            //definicion de la columna del primer indice
+            j1=idx-i1*(m-1);
+            //definicion de fila y columna del segundo indice
+            i2=i1;
+            j2=j1+1;
         }
-        else if(mod > n-1){ //vertical
-            mod -= n;
-            jMenor = jMayor = mod;
-            iMenor = divi;
-            iMayor = divi + 1;
-            coordenadas = {
-                iMenor,
-                jMayor,
-                iMayor,
-                jMenor
-            };
-        
-        }else{ //horizontal
-            jMenor = mod -1;
-            jMayor = mod;
-            iMenor = iMayor = divi;
-            coordenadas = {
-                iMayor,
-                jMenor,
-                iMenor,
-                jMayor
-            };
+        else//indice correspondiante a una columna de resistencias
+        {
+            if((idx-rf)%(n-1)!=0)//definicion de columna del primer indice
+            {
+                j1=(idx-rf)/(n-1);
+            }else 
+            {
+                j1=(idx+rf)/(n-1)-1;
+            }
+            //definicion de fila del primer indice
+            i1=(idx-rf)-j1*(n-1);
+            //definicion de fila y columna del segundo indice
+            j2=j1;
+            i2=i1+1;
         }
+        coordenadas={i1,j1,i2,j2};
+
         return coordenadas;
     }
 
@@ -179,10 +185,10 @@ class ResistorGrid{
                     std::cout << "here" << std::endl;
                 }
                 
-                m1=nodeToIndex(i-1, j, i ,j);
-                m2=nodeToIndex(i, j, i,j+1);
-                m3=nodeToIndex(i+1, j, i,j);
-                m4=nodeToIndex(i, j-1, i ,j);
+                m1=nodesToIndex(i-1, j, i ,j);
+                m2=nodesToIndex(i, j, i,j+1);
+                m3=nodesToIndex(i+1, j, i,j);
+                m4=nodesToIndex(i, j-1, i ,j);
                 
                 if (m4 != 0){
                     A[index][m4-1] = 1.0;
@@ -233,10 +239,10 @@ class ResistorGrid{
         for (int i = 0; i < (m-1); ++i){
             for (int j = 0; j< (n-1); ++j){
                 //obtener posiciones para las resitencias
-                m1 = nodeToIndex(i, j, i, j+1); // derecha adyacente al nodo (pos)
-                m2 = nodeToIndex(i, j+1, i+1, j+1); //derecha para abajo (pos)
-                m3 = nodeToIndex(i+1, j, i+1, j+1); // abajo acostada (neg)
-                m4 = nodeToIndex(i , j, i+1, j); //abajo adyancente al nodo (neg)
+                m1 = nodesToIndex(i, j, i, j+1); // derecha adyacente al nodo (pos)
+                m2 = nodesToIndex(i, j+1, i+1, j+1); //derecha para abajo (pos)
+                m3 = nodesToIndex(i+1, j, i+1, j+1); // abajo acostada (neg)
+                m4 = nodesToIndex(i , j, i+1, j); //abajo adyancente al nodo (neg)
 
                 A[index][m1-1] = (T) resistors[m1-1];
                 A[index][m2-1] = (T) resistors[m2-1];
@@ -251,7 +257,39 @@ class ResistorGrid{
      * Construct the grid from the given file
      * @retturn true if successful or false otherwise 
      * */
-    bool build(const std::string filename);
+    bool build(const std::string filename)
+    {
+        try{
+        std::string mapPath = std::string(ANPI_DATA_PATH) + filename;
+        // Read the image using the OpenCV
+        cv::Mat_<float> map;
+
+        cv::imread(mapPath.c_str(),
+                   CV_LOAD_IMAGE_GRAYSCALE)
+            .convertTo(map, CV_32FC1);
+        map /= 255.0f; // normalize image range to 0 .. 255
+
+        // And create a window to show the image
+        cv::namedWindow(mapPath, CV_WINDOW_NORMAL | CV_GUI_EXPANDED);
+        cv::imshow(mapPath, map);
+
+        // Convert the OpenCV matrix into an anpi matrix
+        // We have to use the std::allocator to avoid an exact stride
+        anpi::Matrix<float, std::allocator<float>> amapTmp(map.rows,
+                                                           map.cols,
+                                                           map.ptr<float>());
+
+        // And transform it to a SIMD-enabled matrix
+        anpi::Matrix<float> amap(amapTmp);
+        rawMap_=amap;
+        cv::waitKey();
+        return true;
+        }
+        catch (cv::Exception e){
+            std::cout<< "Error al cargar imagen"<<std::endl;
+        }
+        return false;
+    }
 
     /**
      * Compute the internal data to navigate between the given nodes

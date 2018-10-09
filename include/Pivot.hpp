@@ -35,7 +35,7 @@ void printM(const Matrix<T> &M){
   int cols = M.cols();
   for (int i = 0 ; i < rows; ++i){
     for (int j = 0; j < cols; ++j){
-      std::cout << M[i][j] << "\t\t";
+      std::cout << M[i][j] << "  ";
     }
     std::cout << std::endl;
   }

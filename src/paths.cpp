@@ -17,14 +17,16 @@
 
 #include <opencv2/core.hpp>    // For cv::Mat
 #include <opencv2/highgui.hpp> // For cv::imread/imshow
-
+#include <opencv2/imgcodecs/imgcodecs_c.h>
+#include <opencv2/highgui/highgui_c.h>
 #include <Matrix.hpp>
 #include <Exception.hpp>
 
+#include <Pivot.hpp>// For anpi::printM
 
 int main() {
   // Build the name of the image in the data path
-  std::string mapPath = std::string( ANPI_DATA_PATH ) + "/mapa.png";
+  std::string mapPath = std::string( ANPI_DATA_PATH ) + "/mapa25x29.png";
 
   // Read the image using the OpenCV
   cv::Mat_<float> map;
@@ -42,9 +44,12 @@ int main() {
   anpi::Matrix<float,std::allocator<float> > amapTmp(map.rows,
                                                      map.cols,
                                                      map.ptr<float>());
+  
   // And transform it to a SIMD-enabled matrix
   anpi::Matrix<float> amap(amapTmp);
-  
+  //std::cout<< "anpi Rows is: "<<amap.rows() <<std::endl;
+  //std::cout<< "anpi Cols is: "<<amap.cols() <<std::endl;
+  //anpi::printM(amap);
   cv::waitKey();
   
   return EXIT_SUCCESS;

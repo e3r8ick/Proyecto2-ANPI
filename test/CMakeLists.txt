@@ -11,3 +11,4 @@ target_link_libraries (tester
                        ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
 add_test(NAME tester COMMAND tester)
+target_link_libraries(tester  ${OpenCV_LIBS} ${Boost_LIBRARIES} python2.7)
