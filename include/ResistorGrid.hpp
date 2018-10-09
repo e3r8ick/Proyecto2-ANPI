@@ -258,7 +258,6 @@ class ResistorGrid{
      * rowI: initial row
      * colI: initial col 
      * */
-    template <typename T>
     void trajectoryFinder(size_t rowI, size_t colI,size_t rowF, size_t colF, std::vector<size_t> x_){
         std::vector<size_t> trajectoryX;
         std::vector<size_t> trajectoryY;
@@ -291,9 +290,9 @@ class ResistorGrid{
                 throw anpi::Exception("Punto inicial menor a cero");
             }
             else if((checkedRow == rowI && checkedCol == colI) && (colN != m && rowN != n) && colP > 0){
-                index1 = nodeToIndex(rowI,colI,rowI,colN);
-                index2 = nodeToIndex(rowI,colI,rowN,colI);
-                index3 = nodeToIndex(rowI,colP,rowI,colI);
+                index1 = nodesToIndex(rowI,colI,rowI,colN);
+                index2 = nodesToIndex(rowI,colI,rowN,colI);
+                index3 = nodesToIndex(rowI,colP,rowI,colI);
                 higher = getHigher(x_[index1],index1,x_[index2],index2,x_[index3],index3);
                 pair = indexToNodes(higher);
                 rowI = pair.row1;
@@ -302,9 +301,9 @@ class ResistorGrid{
                 trajectoryY.push_back(checkedCol);
             }
             else if((checkedRow == rowI && checkedCol == colI) && (colN != m && rowN != n) && rowP > 0){
-                index1 = nodeToIndex(rowI,colI,rowI,colN);
-                index2 = nodeToIndex(rowI,colI,rowN,colI);
-                index3 = nodeToIndex(rowP,colI,rowI,colI);
+                index1 = nodesToIndex(rowI,colI,rowI,colN);
+                index2 = nodesToIndex(rowI,colI,rowN,colI);
+                index3 = nodesToIndex(rowP,colI,rowI,colI);
                 higher = getHigher(x_[index1],index1,x_[index2],index2,x_[index3],index3);
                 pair = indexToNodes(higher);
                 rowI = pair.row1;
@@ -313,8 +312,8 @@ class ResistorGrid{
                 trajectoryY.push_back(colI);
             }
             else if((checkedRow == rowI && checkedCol == colI) && colN == m){
-                index1 = nodeToIndex(rowI,colI,rowN,colI);
-                index2 = nodeToIndex(rowI,colP,rowI,colI);
+                index1 = nodesToIndex(rowI,colI,rowN,colI);
+                index2 = nodesToIndex(rowI,colP,rowI,colI);
                 higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
                 pair = indexToNodes(higher);
                 rowI = pair.row1;
@@ -323,8 +322,8 @@ class ResistorGrid{
                 trajectoryY.push_back(colI);
             }
             else if((checkedRow == rowI && checkedCol == colI) && rowN == m){
-                index1 = nodeToIndex(rowI,colI,rowI,colN);
-                index2 = nodeToIndex(rowI,colP,rowI,colI);
+                index1 = nodesToIndex(rowI,colI,rowI,colN);
+                index2 = nodesToIndex(rowI,colP,rowI,colI);
                 higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
                 pair = indexToNodes(higher);
                 rowI = pair.row1;
@@ -333,8 +332,8 @@ class ResistorGrid{
                 trajectoryY.push_back(colI);
             }
             else if((checkedRow == rowI && checkedCol == colI) && colP < 0){
-                index1 = nodeToIndex(rowI,colI,rowI,colN);
-                index2 = nodeToIndex(rowI,colI,rowN,colI);
+                index1 = nodesToIndex(rowI,colI,rowI,colN);
+                index2 = nodesToIndex(rowI,colI,rowN,colI);
                 higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
                 pair = indexToNodes(higher);
                 rowI = pair.row1;
@@ -343,8 +342,8 @@ class ResistorGrid{
                 trajectoryY.push_back(colI);
             }
             else if((checkedRow == rowI && checkedCol == colI) && rowP < 0){
-                index1 = nodeToIndex(rowI,colI,rowI,colN);
-                index2 = nodeToIndex(rowI,colI,rowN,colI);
+                index1 = nodesToIndex(rowI,colI,rowI,colN);
+                index2 = nodesToIndex(rowI,colI,rowN,colI);
                 higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
                 pair = indexToNodes(higher);
                 rowI = pair.row1;
@@ -354,9 +353,9 @@ class ResistorGrid{
             }
             else{
                 if((checkedRow == rowP && checkedCol == colP) && (colN != m && rowN != n) && colP > 0){
-                    index1 = nodeToIndex(rowI,colI,rowI,colN);
-                    index2 = nodeToIndex(rowI,colI,rowN,colI);
-                    index3 = nodeToIndex(rowI,colP,rowI,colI);
+                    index1 = nodesToIndex(rowI,colI,rowI,colN);
+                    index2 = nodesToIndex(rowI,colI,rowN,colI);
+                    index3 = nodesToIndex(rowI,colP,rowI,colI);
                     higher = getHigher(x_[index1],index1,x_[index2],index2,x_[index3],index3);
                     pair = indexToNodes(higher);
                     checkedRow = rowI;
@@ -367,9 +366,9 @@ class ResistorGrid{
                     trajectoryY.push_back(colI);
                 }
                 else if((checkedRow == rowP && checkedCol == colP) && (colN != m && rowN != n) && rowP > 0){
-                    index1 = nodeToIndex(rowI,colI,rowI,colN);
-                    index2 = nodeToIndex(rowI,colI,rowN,colI);
-                    index3 = nodeToIndex(rowP,colI,rowI,colI);
+                    index1 = nodesToIndex(rowI,colI,rowI,colN);
+                    index2 = nodesToIndex(rowI,colI,rowN,colI);
+                    index3 = nodesToIndex(rowP,colI,rowI,colI);
                     higher = getHigher(x_[index1],index1,x_[index2],index2,x_[index3],index3);
                     pair = indexToNodes(higher);
                     checkedRow = rowI;
@@ -380,8 +379,8 @@ class ResistorGrid{
                     trajectoryY.push_back(colI);
                 }
                 else if((checkedRow == rowP && checkedCol == colI) && colN == m){
-                    index1 = nodeToIndex(rowI,colI,rowN,colI);
-                    index2 = nodeToIndex(rowI,colP,rowI,colI);
+                    index1 = nodesToIndex(rowI,colI,rowN,colI);
+                    index2 = nodesToIndex(rowI,colP,rowI,colI);
                     higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
                     pair = indexToNodes(higher);
                     checkedRow = rowI;
@@ -392,8 +391,8 @@ class ResistorGrid{
                     trajectoryY.push_back(colI);
                 }
                 else if((checkedRow == rowP && checkedCol == colI) && rowN == m){
-                    index1 = nodeToIndex(rowI,colI,rowI,colN);
-                    index2 = nodeToIndex(rowI,colP,rowI,colI);
+                    index1 = nodesToIndex(rowI,colI,rowI,colN);
+                    index2 = nodesToIndex(rowI,colP,rowI,colI);
                     higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
                     pair = indexToNodes(higher);
                     checkedRow = rowI;
@@ -404,8 +403,8 @@ class ResistorGrid{
                     trajectoryY.push_back(colI);
                 }
                 else if((checkedRow == rowP && checkedCol == colI) && colP < 0){
-                    index1 = nodeToIndex(rowI,colI,rowI,colN);
-                    index2 = nodeToIndex(rowI,colI,rowN,colI);
+                    index1 = nodesToIndex(rowI,colI,rowI,colN);
+                    index2 = nodesToIndex(rowI,colI,rowN,colI);
                     higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
                     pair = indexToNodes(higher);
                     checkedRow = rowI;
@@ -416,8 +415,8 @@ class ResistorGrid{
                     trajectoryY.push_back(colI);
                 }
                 else if((checkedRow == rowP && checkedCol == colI) && rowP < 0){
-                    index1 = nodeToIndex(rowI,colI,rowI,colN);
-                    index2 = nodeToIndex(rowI,colI,rowN,colI);
+                    index1 = nodesToIndex(rowI,colI,rowI,colN);
+                    index2 = nodesToIndex(rowI,colI,rowN,colI);
                     higher = getHigher(x_[index1],index1,x_[index2],index2,0,index3);
                     pair = indexToNodes(higher);
                     checkedRow = rowI;
