@@ -239,17 +239,10 @@ class ResistorGrid{
         for (int i = 0; i < (m-1); ++i){
             for (int j = 0; j< (n-1); ++j){
                 //obtener posiciones para las resitencias
-<<<<<<< HEAD
-                m1 = nodeToIndex(i, j, i, j+1); // derecha adyacente al nodo (pos]
-                m2 = nodeToIndex(i, j+1, i+1, j+1); //derecha para abajo (pos]
-                m3 = nodeToIndex(i+1, j, i+1, j+1); // abajo acostada (neg]
-                m4 = nodeToIndex(i , j, i+1, j); //abajo adyancente al nodo (neg]
-=======
                 m1 = nodesToIndex(i, j, i, j+1); // derecha adyacente al nodo (pos)
                 m2 = nodesToIndex(i, j+1, i+1, j+1); //derecha para abajo (pos)
                 m3 = nodesToIndex(i+1, j, i+1, j+1); // abajo acostada (neg)
                 m4 = nodesToIndex(i , j, i+1, j); //abajo adyancente al nodo (neg)
->>>>>>> 63e31a6076c739721f54eb924464ea13a12c8054
 
                 A[index][m1-1] = (T) resistors[m1-1];
                 A[index][m2-1] = (T) resistors[m2-1];
